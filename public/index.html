@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>FatSecret Account Hub</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="FatSecret Account Hub">
+          <span class="brand-mark">F</span>
+          <span>Account Hub</span>
+        </a>
+        <button id="logoutButton" class="ghost hidden" type="button">Выйти</button>
+      </header>
+
+      <section id="loginView" class="login-panel hidden">
+        <p class="eyebrow">Защищённый доступ</p>
+        <h1>Ваши FatSecret-аккаунты<br>в одном месте.</h1>
+        <p class="lead">Подключайте профили безопасно через OAuth и проверяйте актуальные данные дневника.</p>
+        <form id="loginForm" class="login-form">
+          <label for="password">Пароль администратора</label>
+          <div class="input-row">
+            <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Введите пароль">
+            <button type="submit">Войти</button>
+          </div>
+          <p id="loginError" class="form-error" role="alert"></p>
+        </form>
+      </section>
+
+      <section id="dashboardView" class="hidden">
+        <div class="hero">
+          <div>
+            <p class="eyebrow">Панель интеграции</p>
+            <h1>Подключённые аккаунты</h1>
+            <p class="lead">Данные синхронизируются напрямую с FatSecret. Токены хранятся в зашифрованном виде.</p>
+          </div>
+          <button id="openConnectButton" class="primary" type="button"><span>＋</span> Подключить аккаунт</button>
+        </div>
+
+        <div class="stats" aria-label="Общая статистика">
+          <article><span>Аккаунтов</span><strong id="accountCount">0</strong></article>
+          <article><span>Калории сегодня</span><strong id="caloriesTotal">0</strong></article>
+          <article><span>Последняя синхронизация</span><strong id="lastSync">—</strong></article>
+        </div>
+
+        <div id="notice" class="notice hidden" role="status"></div>
+        <div id="accounts" class="account-grid"></div>
+        <div id="emptyState" class="empty hidden">
+          <span class="empty-icon">↗</span>
+          <h2>Добавьте первый аккаунт</h2>
+          <p>FatSecret запросит разрешение на чтение профиля и дневника питания.</p>
+          <button class="primary" data-open-connect type="button">Подключить FatSecret</button>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="connectDialog">
+      <form id="connectForm" method="dialog">
+        <button class="dialog-close" value="cancel" aria-label="Закрыть">×</button>
+        <p class="eyebrow">Новое подключение</p>
+        <h2>Как назвать аккаунт?</h2>
+        <p>Это имя видно только в вашей панели управления.</p>
+        <label for="accountLabel">Название</label>
+        <input id="accountLabel" name="label" minlength="2" maxlength="80" required placeholder="Например, Личный аккаунт">
+        <p id="connectError" class="form-error" role="alert"></p>
+        <button class="primary full" type="submit">Продолжить в FatSecret <span>↗</span></button>
+      </form>
+    </dialog>
+
+    <template id="accountTemplate">
+      <article class="account-card">
+        <div class="card-head">
+          <div class="avatar"></div>
+          <div><h2 class="account-label"></h2><p class="sync-time"></p></div>
+          <span class="status"><i></i> Активен</span>
+        </div>
+        <div class="profile-row">
+          <div><span>Последний вес</span><strong class="last-weight">—</strong></div>
+          <div><span>Цель</span><strong class="goal-weight">—</strong></div>
+          <div><span>Рост</span><strong class="height">—</strong></div>
+        </div>
+        <div class="nutrition">
+          <div class="nutrition-title"><span>Сегодня</span><strong class="card-calories">0 ккал</strong></div>
+          <div class="macro"><span>Белки</span><b class="protein">0 г</b></div>
+          <div class="macro"><span>Жиры</span><b class="fat">0 г</b></div>
+          <div class="macro"><span>Углеводы</span><b class="carbs">0 г</b></div>
+        </div>
+        <div class="card-actions">
+          <button class="sync-button" type="button">↻ Обновить</button>
+          <button class="delete-button" type="button">Отключить</button>
+        </div>
+      </article>
+    </template>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

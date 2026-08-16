@@ -1,0 +1,42 @@
+name: Deploy to Yandex Cloud
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Yandex Cloud CLI
+        run: curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -a
+      - name: Authenticate
+        env:
+          YC_SA_JSON_CREDENTIALS: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
+        run: |
+          umask 077
+          printf '%s' "$YC_SA_JSON_CREDENTIALS" > /tmp/yc-key.json
+          "$HOME/yandex-cloud/bin/yc" config profile create ci
+          "$HOME/yandex-cloud/bin/yc" config set service-account-key /tmp/yc-key.json
+      - name: Deploy image and revision
+        env:
+          PATH: /home/runner/yandex-cloud/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+          YC_FOLDER_ID: ${{ vars.YC_FOLDER_ID }}
+          YC_REGISTRY_ID: ${{ vars.YC_REGISTRY_ID }}
+          YC_SERVICE_ACCOUNT_ID: ${{ vars.YC_SERVICE_ACCOUNT_ID }}
+          YC_LOCKBOX_SECRET_ID: ${{ vars.YC_LOCKBOX_SECRET_ID }}
+          YC_NETWORK_ID: ${{ vars.YC_NETWORK_ID }}
+          YC_CONTAINER_NAME: ${{ vars.YC_CONTAINER_NAME }}
+          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: bash infra/deploy-yandex.sh

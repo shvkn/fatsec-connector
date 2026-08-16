@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: fatsecret
+      POSTGRES_USER: fatsecret
+      POSTGRES_PASSWORD: fatsecret
+    ports:
+      - "5432:5432"
+    volumes:
+      - fatsecret_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fatsecret -d fatsecret"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    env_file: .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://fatsecret:fatsecret@postgres:5432/fatsecret
+
+volumes:
+  fatsecret_postgres:
