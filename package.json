@@ -11,11 +11,15 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "test": "node --test",
-    "check": "node --check src/server.js && node --check src/fatsecret.js && node --check src/security.js && node --check public/app.js"
+    "test": "node --test test/*.test.js",
+    "test:ydb": "node test/ydb.integration.js",
+    "check": "node --check src/server.js && node --check src/config.js && node --check src/database.js && node --check src/fatsecret.js && node --check src/security.js && node --check public/app.js"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "pg": "^8.16.3"
+    "@ydbjs/auth": "^6.3.1",
+    "@ydbjs/core": "^6.3.1",
+    "@ydbjs/query": "^6.3.0",
+    "@ydbjs/value": "^6.0.8",
+    "express": "^5.1.0"
   }
 }

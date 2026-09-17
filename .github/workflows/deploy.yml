@@ -2,8 +2,6 @@ name: Deploy to Yandex Cloud
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 concurrency:
   group: production
@@ -35,7 +33,7 @@ jobs:
           YC_REGISTRY_ID: ${{ vars.YC_REGISTRY_ID }}
           YC_SERVICE_ACCOUNT_ID: ${{ vars.YC_SERVICE_ACCOUNT_ID }}
           YC_LOCKBOX_SECRET_ID: ${{ vars.YC_LOCKBOX_SECRET_ID }}
-          YC_NETWORK_ID: ${{ vars.YC_NETWORK_ID }}
+          YDB_CONNECTION_STRING: ${{ vars.YDB_CONNECTION_STRING }}
           YC_CONTAINER_NAME: ${{ vars.YC_CONTAINER_NAME }}
           PUBLIC_URL: ${{ vars.PUBLIC_URL }}
           IMAGE_TAG: ${{ github.sha }}

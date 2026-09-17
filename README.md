@@ -8,7 +8,7 @@
 - защищённая паролем панель управления;
 - шифрование OAuth-токенов AES-256-GCM;
 - защита cookie и изменяющих запросов CSRF-токеном;
-- PostgreSQL для постоянного хранения;
+- YDB Serverless для недорогого постоянного хранения;
 - Docker и локальный Docker Compose;
 - GitHub Actions для проверки и деплоя;
 - деплой в Yandex Serverless Containers с секретами из Lockbox.
@@ -37,19 +37,17 @@ Callback URL приложения FatSecret должен совпадать с `
 
 ## Yandex Cloud
 
-Рекомендуемая схема: Serverless Containers + Container Registry + Lockbox + Managed Service for PostgreSQL. Контейнер и кластер PostgreSQL должны иметь сетевую доступность друг к другу. Приложение автоматически создаёт таблицы при старте.
+Схема production: Serverless Containers + Container Registry + Lockbox + YDB Serverless. Приложение подключается к YDB через IAM-токен сервисного аккаунта и автоматически создаёт таблицы при старте. Для небольшой нагрузки действует бесплатный пакет YDB Serverless.
 
 Создайте секрет Lockbox с ключами:
 
-- `DATABASE_URL` — строка подключения PostgreSQL;
-- `DATABASE_CA_CERT` — PEM-сертификат Yandex Cloud CA (переносы строк можно записать как `\\n`);
 - `FATSECRET_CONSUMER_KEY`;
 - `FATSECRET_CONSUMER_SECRET`;
 - `TOKEN_ENCRYPTION_KEY`;
 - `SESSION_SECRET`;
 - `ADMIN_PASSWORD`.
 
-Сервисному аккаунту контейнера нужны роли `container-registry.images.puller` и `lockbox.payloadViewer`; для зашифрованного KMS-секрета также нужна `kms.keys.encrypterDecrypter`. Аккаунту CI нужны права на push в Container Registry и создание ревизий Serverless Containers.
+Сервисному аккаунту контейнера нужны роли `ydb.editor`, `container-registry.images.puller` и `lockbox.payloadViewer`; для зашифрованного KMS-секрета также нужна `kms.keys.encrypterDecrypter`. Аккаунту CI нужны права на push в Container Registry и создание ревизий Serverless Containers.
 
 Ручной деплой выполняется так:
 
@@ -58,7 +56,7 @@ export YC_FOLDER_ID=...
 export YC_REGISTRY_ID=...
 export YC_SERVICE_ACCOUNT_ID=...
 export YC_LOCKBOX_SECRET_ID=...
-export YC_NETWORK_ID=...
+export YDB_CONNECTION_STRING='grpcs://ydb.serverless.yandexcloud.net:2135/?database=/ru-central1/...'
 export YC_CONTAINER_NAME=fatsecret-account-hub
 export PUBLIC_URL=https://your-container-url.example
 bash infra/deploy-yandex.sh
@@ -71,9 +69,9 @@ bash infra/deploy-yandex.sh
 В GitHub Environment `production` добавьте:
 
 - secret `YC_SA_JSON_CREDENTIALS` — JSON-ключ сервисного аккаунта CI;
-- variables `YC_FOLDER_ID`, `YC_REGISTRY_ID`, `YC_SERVICE_ACCOUNT_ID`, `YC_LOCKBOX_SECRET_ID`, `YC_NETWORK_ID`, `YC_CONTAINER_NAME`, `PUBLIC_URL`.
+- variables `YC_FOLDER_ID`, `YC_REGISTRY_ID`, `YC_SERVICE_ACCOUNT_ID`, `YC_LOCKBOX_SECRET_ID`, `YDB_CONNECTION_STRING`, `YC_CONTAINER_NAME`, `PUBLIC_URL`.
 
-Workflow `CI` запускает проверки и сборку Docker-образа. Workflow `Deploy to Yandex Cloud` собирает образ, отправляет его в Yandex Container Registry и создаёт новую ревизию Serverless Container.
+Workflow `CI` запускает проверки и сборку Docker-образа. Workflow `Deploy to Yandex Cloud` запускается вручную, собирает образ, отправляет его в Yandex Container Registry и создаёт новую ревизию Serverless Container.
 
 ## API
 
@@ -85,4 +83,4 @@ Workflow `CI` запускает проверки и сборку Docker-обр�
 - `POST /api/accounts/:id/sync` — обновить профиль и дневник;
 - `DELETE /api/accounts/:id` — отключить аккаунт.
 
-Официальная документация: [FatSecret 3-Legged OAuth](https://platform.fatsecret.com/docs/guides/authentication/oauth1/three-legged), [Yandex Serverless Containers](https://yandex.cloud/en/docs/serverless-containers/), [передача Lockbox-секретов](https://yandex.cloud/en/docs/lockbox/operations/serverless/containers).
+Официальная документация: [FatSecret 3-Legged OAuth](https://platform.fatsecret.com/docs/guides/authentication/oauth1/three-legged), [YDB Serverless](https://yandex.cloud/ru/docs/ydb/concepts/serverless-and-dedicated), [Yandex Serverless Containers](https://yandex.cloud/en/docs/serverless-containers/), [передача Lockbox-секретов](https://yandex.cloud/en/docs/lockbox/operations/serverless/containers).

@@ -1,6 +1,6 @@
 FROM node:22-alpine AS dependencies
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN corepack enable && pnpm install --prod --frozen-lockfile
 
 FROM node:22-alpine
@@ -9,7 +9,6 @@ WORKDIR /app
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY package.json ./
 COPY public ./public
-COPY sql ./sql
 COPY src ./src
 USER node
 EXPOSE 8080

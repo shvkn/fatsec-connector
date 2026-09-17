@@ -6,9 +6,8 @@ import { createSessionManager, createVault } from "./security.js";
 
 const config = loadConfig();
 const database = createDatabase({
-  connectionString: config.databaseUrl,
-  ssl: config.databaseSsl,
-  ca: config.databaseCaCert
+  connectionString: config.ydbConnectionString,
+  authMode: config.ydbAuthMode
 });
 const vault = createVault(config.tokenEncryptionKey);
 const sessions = createSessionManager(config.sessionSecret);

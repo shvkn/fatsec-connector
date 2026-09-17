@@ -1,19 +1,16 @@
 services:
-  postgres:
-    image: postgres:17-alpine
+  ydb:
+    image: ydbplatform/local-ydb:latest
+    platform: linux/amd64
+    hostname: ydb
     environment:
-      POSTGRES_DB: fatsecret
-      POSTGRES_USER: fatsecret
-      POSTGRES_PASSWORD: fatsecret
+      GRPC_PORT: "2136"
+      MON_PORT: "8765"
     ports:
-      - "5432:5432"
+      - "2136:2136"
+      - "8765:8765"
     volumes:
-      - fatsecret_postgres:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fatsecret -d fatsecret"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      - fatsecret_ydb:/ydb_data
 
   app:
     build: .
@@ -21,10 +18,11 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      postgres:
+      ydb:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://fatsecret:fatsecret@postgres:5432/fatsecret
+      YDB_CONNECTION_STRING: grpc://ydb:2136/local
+      YDB_AUTH_MODE: anonymous
 
 volumes:
-  fatsecret_postgres:
+  fatsecret_ydb:

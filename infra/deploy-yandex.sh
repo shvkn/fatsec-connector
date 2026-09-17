@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-required=(YC_FOLDER_ID YC_REGISTRY_ID YC_SERVICE_ACCOUNT_ID YC_LOCKBOX_SECRET_ID YC_NETWORK_ID PUBLIC_URL)
+required=(YC_FOLDER_ID YC_REGISTRY_ID YC_SERVICE_ACCOUNT_ID YC_LOCKBOX_SECRET_ID YDB_CONNECTION_STRING PUBLIC_URL)
 for name in "${required[@]}"; do
   if [[ -z "${!name:-}" ]]; then
     echo "Required environment variable is missing: ${name}" >&2
@@ -29,10 +29,7 @@ yc serverless container revision deploy \
   --execution-timeout 30s \
   --concurrency 8 \
   --service-account-id "${YC_SERVICE_ACCOUNT_ID}" \
-  --network-id "${YC_NETWORK_ID}" \
-  --environment "NODE_ENV=production,PUBLIC_URL=${PUBLIC_URL},DATABASE_SSL=true" \
-  --secret "environment-variable=DATABASE_URL,id=${YC_LOCKBOX_SECRET_ID},key=DATABASE_URL" \
-  --secret "environment-variable=DATABASE_CA_CERT,id=${YC_LOCKBOX_SECRET_ID},key=DATABASE_CA_CERT" \
+  --environment "NODE_ENV=production,PUBLIC_URL=${PUBLIC_URL},YDB_CONNECTION_STRING=${YDB_CONNECTION_STRING},YDB_AUTH_MODE=metadata" \
   --secret "environment-variable=FATSECRET_CONSUMER_KEY,id=${YC_LOCKBOX_SECRET_ID},key=FATSECRET_CONSUMER_KEY" \
   --secret "environment-variable=FATSECRET_CONSUMER_SECRET,id=${YC_LOCKBOX_SECRET_ID},key=FATSECRET_CONSUMER_SECRET" \
   --secret "environment-variable=TOKEN_ENCRYPTION_KEY,id=${YC_LOCKBOX_SECRET_ID},key=TOKEN_ENCRYPTION_KEY" \
