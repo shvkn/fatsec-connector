@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-required=(YC_FOLDER_ID YC_REGISTRY_ID YC_SERVICE_ACCOUNT_ID YC_LOCKBOX_SECRET_ID YDB_CONNECTION_STRING PUBLIC_URL)
+required=(YC_FOLDER_ID YC_REGISTRY_ID YC_CONTAINER_ID YC_SERVICE_ACCOUNT_ID YC_LOCKBOX_SECRET_ID YDB_CONNECTION_STRING PUBLIC_URL)
 for name in "${required[@]}"; do
   if [[ -z "${!name:-}" ]]; then
     echo "Required environment variable is missing: ${name}" >&2
@@ -10,19 +10,14 @@ for name in "${required[@]}"; do
 done
 
 IMAGE="cr.yandex/${YC_REGISTRY_ID}/fatsecret-account-hub:${IMAGE_TAG:-latest}"
-CONTAINER_NAME="${YC_CONTAINER_NAME:-fatsecret-account-hub}"
 
 yc config set folder-id "${YC_FOLDER_ID}"
 yc container registry configure-docker
 docker build --platform linux/amd64 -t "${IMAGE}" .
 docker push "${IMAGE}"
 
-if ! yc serverless container get --name "${CONTAINER_NAME}" >/dev/null 2>&1; then
-  yc serverless container create --name "${CONTAINER_NAME}"
-fi
-
 yc serverless container revision deploy \
-  --container-name "${CONTAINER_NAME}" \
+  --container-id "${YC_CONTAINER_ID}" \
   --image "${IMAGE}" \
   --cores 1 \
   --memory 512MB \
@@ -36,5 +31,5 @@ yc serverless container revision deploy \
   --secret "environment-variable=SESSION_SECRET,id=${YC_LOCKBOX_SECRET_ID},key=SESSION_SECRET" \
   --secret "environment-variable=ADMIN_PASSWORD,id=${YC_LOCKBOX_SECRET_ID},key=ADMIN_PASSWORD"
 
-yc serverless container allow-unauthenticated-invoke "${CONTAINER_NAME}"
-yc serverless container get --name "${CONTAINER_NAME}" --format json --jq '.url'
+yc serverless container allow-unauthenticated-invoke --id "${YC_CONTAINER_ID}"
+yc serverless container get --id "${YC_CONTAINER_ID}" --format json --jq '.url'

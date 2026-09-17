@@ -54,6 +54,7 @@ Callback URL приложения FatSecret должен совпадать с `
 ```bash
 export YC_FOLDER_ID=...
 export YC_REGISTRY_ID=...
+export YC_CONTAINER_ID=...
 export YC_SERVICE_ACCOUNT_ID=...
 export YC_LOCKBOX_SECRET_ID=...
 export YDB_CONNECTION_STRING='grpcs://ydb.serverless.yandexcloud.net:2135/?database=/ru-central1/...'
@@ -69,7 +70,7 @@ bash infra/deploy-yandex.sh
 В GitHub Environment `production` добавьте:
 
 - secret `YC_SA_JSON_CREDENTIALS` — JSON-ключ сервисного аккаунта CI;
-- variables `YC_FOLDER_ID`, `YC_REGISTRY_ID`, `YC_SERVICE_ACCOUNT_ID`, `YC_LOCKBOX_SECRET_ID`, `YDB_CONNECTION_STRING`, `YC_CONTAINER_NAME`, `PUBLIC_URL`.
+- variables `YC_FOLDER_ID`, `YC_REGISTRY_ID`, `YC_CONTAINER_ID`, `YC_SERVICE_ACCOUNT_ID`, `YC_LOCKBOX_SECRET_ID`, `YDB_CONNECTION_STRING`, `PUBLIC_URL`.
 
 Workflow `CI` запускает проверки и сборку Docker-образа. Workflow `Deploy to Yandex Cloud` запускается вручную, собирает образ, отправляет его в Yandex Container Registry и создаёт новую ревизию Serverless Container.
 

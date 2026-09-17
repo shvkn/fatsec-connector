@@ -31,10 +31,10 @@ jobs:
           PATH: /home/runner/yandex-cloud/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
           YC_FOLDER_ID: ${{ vars.YC_FOLDER_ID }}
           YC_REGISTRY_ID: ${{ vars.YC_REGISTRY_ID }}
+          YC_CONTAINER_ID: ${{ vars.YC_CONTAINER_ID }}
           YC_SERVICE_ACCOUNT_ID: ${{ vars.YC_SERVICE_ACCOUNT_ID }}
           YC_LOCKBOX_SECRET_ID: ${{ vars.YC_LOCKBOX_SECRET_ID }}
           YDB_CONNECTION_STRING: ${{ vars.YDB_CONNECTION_STRING }}
-          YC_CONTAINER_NAME: ${{ vars.YC_CONTAINER_NAME }}
           PUBLIC_URL: ${{ vars.PUBLIC_URL }}
           IMAGE_TAG: ${{ github.sha }}
         run: bash infra/deploy-yandex.sh
