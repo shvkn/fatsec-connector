@@ -7,12 +7,13 @@ if [[ -z "${PUBLIC_URL}" ]]; then
   exit 1
 fi
 PUBLIC_URL="${PUBLIC_URL%/}"
+CURL=(curl --retry 5 --retry-all-errors --retry-delay 2 --connect-timeout 10 --max-time 30)
 
-curl --fail --silent --show-error "${PUBLIC_URL}/health" >/dev/null
-curl --fail --silent --show-error "${PUBLIC_URL}/openapi.json" >/dev/null
-curl --fail --silent --show-error "${PUBLIC_URL}/.well-known/ai-plugin.json" >/dev/null
+"${CURL[@]}" --fail --silent --show-error "${PUBLIC_URL}/health" >/dev/null
+"${CURL[@]}" --fail --silent --show-error "${PUBLIC_URL}/openapi.json" >/dev/null
+"${CURL[@]}" --fail --silent --show-error "${PUBLIC_URL}/.well-known/ai-plugin.json" >/dev/null
 
-status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+status="$("${CURL[@]}" --silent --output /dev/null --write-out '%{http_code}' \
   "${PUBLIC_URL}/v1/foods/search?query=test")"
 if [[ "${status}" != "401" ]]; then
   echo "Expected protected API to return 401 without a key, got ${status}" >&2
