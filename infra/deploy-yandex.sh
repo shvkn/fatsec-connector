@@ -29,6 +29,7 @@ yc serverless container revision deploy \
   --secret "environment-variable=FATSECRET_CONSUMER_SECRET,id=${YC_LOCKBOX_SECRET_ID},key=FATSECRET_CONSUMER_SECRET" \
   --secret "environment-variable=TOKEN_ENCRYPTION_KEY,id=${YC_LOCKBOX_SECRET_ID},key=TOKEN_ENCRYPTION_KEY" \
   --secret "environment-variable=SESSION_SECRET,id=${YC_LOCKBOX_SECRET_ID},key=SESSION_SECRET" \
+  --secret "environment-variable=API_KEY,id=${YC_LOCKBOX_SECRET_ID},key=API_KEY" \
   --secret "environment-variable=ADMIN_PASSWORD,id=${YC_LOCKBOX_SECRET_ID},key=ADMIN_PASSWORD"
 
 yc serverless container allow-unauthenticated-invoke --id "${YC_CONTAINER_ID}"
