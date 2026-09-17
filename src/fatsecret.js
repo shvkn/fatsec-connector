@@ -36,13 +36,6 @@ function oauthParams(consumerKey, extra = {}) {
   };
 }
 
-function authorizationHeader(params) {
-  return `OAuth ${Object.entries(params)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, value]) => `${percentEncode(key)}="${percentEncode(value)}"`)
-    .join(", ")}`;
-}
-
 function parseForm(body) {
   return Object.fromEntries(new URLSearchParams(body));
 }
@@ -77,7 +70,8 @@ export class FatSecretClient {
     });
     const response = await this.fetch(REQUEST_TOKEN_URL, {
       method: "POST",
-      headers: { Authorization: authorizationHeader(params) }
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(params)
     });
     const result = parseForm(await readResponse(response));
     if (!result.oauth_token || !result.oauth_token_secret || result.oauth_callback_confirmed !== "true") {
@@ -102,9 +96,7 @@ export class FatSecretClient {
       consumerSecret: this.consumerSecret,
       tokenSecret: requestSecret
     });
-    const response = await this.fetch(ACCESS_TOKEN_URL, {
-      headers: { Authorization: authorizationHeader(params) }
-    });
+    const response = await this.fetch(`${ACCESS_TOKEN_URL}?${new URLSearchParams(params)}`);
     const result = parseForm(await readResponse(response));
     if (!result.oauth_token || !result.oauth_token_secret) {
       throw new Error("FatSecret did not return a valid access token");
@@ -123,9 +115,7 @@ export class FatSecretClient {
       consumerSecret: this.consumerSecret,
       tokenSecret
     });
-    const response = await this.fetch(`${url}?${new URLSearchParams(queryParams)}`, {
-      headers: { Authorization: authorizationHeader(params) }
-    });
+    const response = await this.fetch(`${url}?${new URLSearchParams({ ...queryParams, ...params })}`);
     return readResponse(response);
   }
 

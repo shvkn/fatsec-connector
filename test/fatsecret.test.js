@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { currentFatSecretDay, oauthSignature, percentEncode } from "../src/fatsecret.js";
+import { FatSecretClient, currentFatSecretDay, oauthSignature, percentEncode } from "../src/fatsecret.js";
 
 test("OAuth encoding follows RFC 3986", () => {
   assert.equal(percentEncode("Ladies + Gentlemen"), "Ladies%20%2B%20Gentlemen");
@@ -29,4 +29,54 @@ test("OAuth signature matches the OAuth 1.0 specification example", () => {
 
 test("FatSecret date is expressed as days since Unix epoch", () => {
   assert.equal(currentFatSecretDay(Date.UTC(1970, 0, 2)), 1);
+});
+
+test("request token parameters are sent as a form body", async () => {
+  const client = new FatSecretClient({
+    consumerKey: "consumer-key",
+    consumerSecret: "consumer-secret",
+    fetchImpl: async (url, options) => {
+      assert.equal(url, "https://authentication.fatsecret.com/oauth/request_token");
+      assert.equal(options.method, "POST");
+      assert.equal(options.headers["content-type"], "application/x-www-form-urlencoded");
+      const body = new URLSearchParams(options.body);
+      assert.equal(body.get("oauth_consumer_key"), "consumer-key");
+      assert.equal(body.get("oauth_callback"), "https://example.com/callback");
+      assert.ok(body.get("oauth_signature"));
+      return new Response("oauth_token=request-token&oauth_token_secret=request-secret&oauth_callback_confirmed=true");
+    }
+  });
+
+  const result = await client.requestToken("https://example.com/callback");
+  assert.equal(result.oauth_token, "request-token");
+});
+
+test("access and delegated OAuth parameters are sent in GET query strings", async () => {
+  const requests = [];
+  const client = new FatSecretClient({
+    consumerKey: "consumer-key",
+    consumerSecret: "consumer-secret",
+    fetchImpl: async (url) => {
+      requests.push(new URL(url));
+      if (url.startsWith("https://authentication.fatsecret.com/oauth/access_token")) {
+        return new Response("oauth_token=access-token&oauth_token_secret=access-secret");
+      }
+      return Response.json({ profile: { id: "profile-id" } });
+    }
+  });
+
+  const access = await client.accessToken({
+    requestToken: "request-token",
+    requestSecret: "request-secret",
+    verifier: "verifier"
+  });
+  assert.equal(access.oauth_token, "access-token");
+  assert.equal(requests[0].searchParams.get("oauth_consumer_key"), "consumer-key");
+  assert.equal(requests[0].searchParams.get("oauth_token"), "request-token");
+  assert.ok(requests[0].searchParams.get("oauth_signature"));
+
+  await client.getProfile({ token: "access-token", tokenSecret: "access-secret" });
+  assert.equal(requests[1].searchParams.get("format"), "json");
+  assert.equal(requests[1].searchParams.get("oauth_token"), "access-token");
+  assert.ok(requests[1].searchParams.get("oauth_signature"));
 });
