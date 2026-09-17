@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import test from "node:test";
-import { createSessionManager, createVault, verifyPassword } from "../src/security.js";
+import { createSessionManager, createVault, verifyApiKey, verifyPassword } from "../src/security.js";
 
 test("vault encrypts and decrypts token values", () => {
   const vault = createVault(crypto.randomBytes(32).toString("base64"));
@@ -32,4 +32,10 @@ test("signed sessions can be verified and expose a CSRF token", () => {
 test("password comparison works without direct string comparison", () => {
   assert.equal(verifyPassword("correct horse", "correct horse"), true);
   assert.equal(verifyPassword("wrong", "correct horse"), false);
+});
+
+test("API key comparison rejects missing and incorrect keys", () => {
+  assert.equal(verifyApiKey("correct-key", "correct-key"), true);
+  assert.equal(verifyApiKey("wrong-key", "correct-key"), false);
+  assert.equal(verifyApiKey("", "correct-key"), false);
 });

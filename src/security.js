@@ -62,6 +62,14 @@ export function verifyPassword(actual, expected) {
   );
 }
 
+export function verifyApiKey(actual, expected) {
+  if (!actual || !expected) return false;
+  return safeEqual(
+    crypto.createHash("sha256").update(String(actual)).digest(),
+    crypto.createHash("sha256").update(String(expected)).digest()
+  );
+}
+
 export function createSessionManager(secret, { ttlSeconds = 12 * 60 * 60 } = {}) {
   function read(cookieValue) {
     if (!cookieValue) return null;

@@ -104,19 +104,35 @@ export class FatSecretClient {
     return result;
   }
 
-  async delegatedGet(path, query, { token, tokenSecret }) {
+  async delegatedRequest(method, path, parameters, { token, tokenSecret }) {
     const url = `${REST_BASE_URL}${path}`;
-    const queryParams = { format: "json", ...query };
+    const requestParams = { format: "json", ...parameters };
     const params = oauthParams(this.consumerKey, { oauth_token: token });
     params.oauth_signature = oauthSignature({
-      method: "GET",
+      method,
       url,
-      params: { ...params, ...queryParams },
+      params: { ...params, ...requestParams },
       consumerSecret: this.consumerSecret,
       tokenSecret
     });
-    const response = await this.fetch(`${url}?${new URLSearchParams({ ...queryParams, ...params })}`);
+
+    const allParams = { ...requestParams, ...params };
+    const response = method === "GET"
+      ? await this.fetch(`${url}?${new URLSearchParams(allParams)}`)
+      : await this.fetch(url, {
+        method,
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams(allParams)
+      });
     return readResponse(response);
+  }
+
+  delegatedGet(path, query, credentials) {
+    return this.delegatedRequest("GET", path, query, credentials);
+  }
+
+  delegatedPost(path, body, credentials) {
+    return this.delegatedRequest("POST", path, body, credentials);
   }
 
   getProfile(credentials) {
@@ -126,8 +142,46 @@ export class FatSecretClient {
   getFoodDiary(date, credentials) {
     return this.delegatedGet("/food-entries/v2", { date: String(date) }, credentials);
   }
+
+  searchFoods(searchExpression, { pageNumber = 0, maxResults = 10 } = {}, credentials) {
+    return this.delegatedGet("/foods/search/v1", {
+      search_expression: searchExpression,
+      page_number: String(pageNumber),
+      max_results: String(maxResults)
+    }, credentials);
+  }
+
+  getFood(foodId, credentials) {
+    return this.delegatedGet("/food/v5", { food_id: String(foodId) }, credentials);
+  }
+
+  createFoodEntry(entry, credentials) {
+    return this.delegatedPost("/food-entries/v1", {
+      food_id: String(entry.foodId),
+      food_entry_name: entry.name,
+      serving_id: String(entry.servingId),
+      number_of_units: String(entry.numberOfUnits),
+      meal: entry.meal,
+      date: String(entry.date)
+    }, credentials);
+  }
 }
 
 export function currentFatSecretDay(now = Date.now()) {
   return Math.floor(now / 86_400_000);
+}
+
+export function fatSecretDay(value) {
+  if (value === undefined || value === null || value === "") return currentFatSecretDay();
+  if (Number.isInteger(value) && value >= 0) return value;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new Error("date must be YYYY-MM-DD or a non-negative FatSecret day number");
+  }
+  const [year, month, day] = value.split("-").map(Number);
+  const timestamp = Date.UTC(year, month - 1, day);
+  const parsed = new Date(timestamp);
+  if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month - 1 || parsed.getUTCDate() !== day) {
+    throw new Error("date is not a valid calendar date");
+  }
+  return Math.floor(timestamp / 86_400_000);
 }

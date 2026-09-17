@@ -27,6 +27,7 @@ export function loadConfig() {
     fatsecretConsumerSecret: required("FATSECRET_CONSUMER_SECRET"),
     tokenEncryptionKey: required("TOKEN_ENCRYPTION_KEY"),
     sessionSecret: required("SESSION_SECRET"),
-    adminPassword: required("ADMIN_PASSWORD")
+    adminPassword: required("ADMIN_PASSWORD"),
+    apiKey: required("API_KEY")
   };
 }

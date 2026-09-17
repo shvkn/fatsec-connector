@@ -13,7 +13,7 @@
     "start": "node src/server.js",
     "test": "node --test test/*.test.js",
     "test:ydb": "node test/ydb.integration.js",
-    "check": "node --check src/server.js && node --check src/config.js && node --check src/database.js && node --check src/fatsecret.js && node --check src/security.js && node --check public/app.js"
+    "check": "node --check src/server.js && node --check src/app.js && node --check src/config.js && node --check src/database.js && node --check src/fatsecret.js && node --check src/openapi.js && node --check src/security.js && node --check public/app.js"
   },
   "dependencies": {
     "@ydbjs/auth": "^6.3.1",
