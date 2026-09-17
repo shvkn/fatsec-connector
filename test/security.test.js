@@ -13,7 +13,11 @@ test("vault encrypts and decrypts token values", () => {
 test("vault detects encrypted value tampering", () => {
   const vault = createVault(crypto.randomBytes(32).toString("base64"));
   const encrypted = vault.encrypt("secret");
-  assert.throws(() => vault.decrypt(`${encrypted.slice(0, -1)}x`));
+  const parts = encrypted.split(".");
+  const ciphertext = Buffer.from(parts[2], "base64url");
+  ciphertext[0] ^= 1;
+  parts[2] = ciphertext.toString("base64url");
+  assert.throws(() => vault.decrypt(parts.join(".")));
 });
 
 test("signed sessions can be verified and expose a CSRF token", () => {
